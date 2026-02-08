@@ -48,6 +48,19 @@ void syscall_handler(struct trap_frame *tf) {
         L1(L_NORM, L_USER_DELETE, tf->a0);
         flat_delete(&flat_fs, tf->a0);
         break;
+    case SYS_GETTIME:
+        uint64_t tsb = mtime_get();
+        uint64_t sp = tsb / time_base;
+        uint64_t rem = tsb % time_base;
+        uint64_t sb = (sp * 1e9) + (rem * 1e9) / time_base;
+        
+        tf->a0 = sb;
+
+        #if __riscv_xlen == 32
+            tf->a1 = sb >> 32;
+        #endif
+
+        break;
     case 56: case 63: case 64: case 93: case 214:
         selfie_syscall_handler(tf);
         break;
